@@ -9,7 +9,6 @@ from obj import Obj
 import random
 
 
-
 V2 = namedtuple('Vertex2', ['x', 'y'])
 V3 = namedtuple('Vertex3', ['x', 'y', 'z'])
 
@@ -58,7 +57,13 @@ def barycentric(A, B, C, P):
     b[0] / b[2]
   )
   
-  
+def bbox(A, B, C):
+    xs = [A.x, B.x, C.x]
+    xs.sort()
+    ys = [A.y, B.y, C.y]
+    ys.sort()
+    return round(xs[0]), round(xs[-1]), round(ys[0]), round(ys[-1])
+
 
 
 def char(c):
@@ -74,27 +79,24 @@ def dword(d):
     return struct.pack('=l', d)
 
 # Guarda color
-def color(r, g, b):
+#def color2(r, g, b):
     # Acepta valores de 0 a 1
-    return bytes([b, g, r])
+ #   return bytes([b, g, r])
 
-# Variables globales
-
-#BLACK = color(0,0,0)
-#WHITE = color(1,1,1)
-
+def color(r, g, b):
+    return bytes([int(b * 250), int(g * 250), int(r * 250)])
 
 class Renderer(object):
     #Constructor
     def __init__(self, width, height):
-        
-        self.height = height
+        # Renderer de color negro
         self.width = width
-        self.framebuffer = []
-        self.clear_color = color(255, 255, 255)
-        self.vertex_color = color(0, 0, 0)
-        self.glClear()
-
+        self.height = height
+        self.currentColores = white
+        self.current_texture = None
+        self.current_texture_2 = None
+        self.light = None
+        self.clear()
     def glCreateWindow(self, width, height):
         self.width = width
         self.height = height
@@ -184,6 +186,24 @@ class Renderer(object):
                 
                 y += 1 if y0 < y1 else -1
                 limit += 1
+    
+    def triangle(self, A, B, C):
+        xmax, ymax, xmin, ymin = bbox(A, B, C)
+
+        for x in range(xmin, xmax + 1):
+            for y in range(ymin, ymax + 1):
+                P = V2(x, y)
+                w, v, u = barycentric(A, B, C, P)
+                if w < 0 or v < 0 or u < 0:
+                    continue
+                z = A.z * w + B.z * u + C.z * v
+                try:
+                    if z > self.zbuffer[x][y]:
+                        self.glpoint(x, y)
+                        self.zbuffer[x][y] = z
+                except:
+                    pass
+
 
     
     #Se tomo de ejemplo lo realizado en clase
@@ -210,6 +230,7 @@ class Renderer(object):
 
                 self.glLine(V2(x0,y0), V2(x1, y1))
 
+    
 
     # Creación del Bitmap
     def glFinish(self, filename):
@@ -240,14 +261,9 @@ class Renderer(object):
             for y in range(self.height):
                 for x in range(self.width):
                     file.write(self.framebuffer[y][x])
-                    
-    #Retorna el vertex3
-    def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
-            return V3(round((vertex[0] + translate[0]) * scale[0]),round((vertex[1] + translate[1]) * scale[1]),round((vertex[2] + translate[2]) * scale[2]))
-        
-    
-    
-    #Relleno de los polígonos
+
+
+       #Relleno de los polígonos
     def glFill(self, x,y):
 
         if (x > 360 and y > 330):
@@ -261,6 +277,14 @@ class Renderer(object):
         else:
             return color(255,0,0)
 
+    #Retorna el vertex3
+    def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
+            return V3(round((vertex[0] + translate[0]) * scale[0]),round((vertex[1] + translate[1]) * scale[1]),round((vertex[2] + translate[2]) * scale[2]))
+        
+
+black = color(0, 0, 0)
+white = color(250, 250, 250)
+
 # Dimensiones
 width = 800
 height = 740
@@ -268,9 +292,7 @@ height = 740
 # Instancia del renderer
 r = Renderer(width, height)
 
-r.glClear()
-r.glLoadModel('./sphere.obj')
-
+r.glLoadModel('./sphere.obj', V2(width/2, 300), V2(-70,50))
 r.glFinish("a.bmp")
 
 
