@@ -277,7 +277,7 @@ class Renderer(object):
         else:
             return color(255,0,0)
 
-    #Retorna el vertex3
+    #Retorna el vertex
     def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
             return V3(round((vertex[0] + translate[0]) * scale[0]),round((vertex[1] + translate[1]) * scale[1]),round((vertex[2] + translate[2]) * scale[2]))
         
