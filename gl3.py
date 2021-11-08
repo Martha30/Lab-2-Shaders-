@@ -266,11 +266,11 @@ class Renderer(object):
        #Relleno de los polígonos
     def glFill(self, x,y):
 
-        if (x > 360 and y > 330):
+        if (x > 245 and y > 225):
             return color(255, 36, 0)
-        elif (y > 325):
+        elif (y > 215):
             return color(251, 163, 26)
-        elif (x > 250 and x < 300 and y > 200):
+        elif (x > 250 and x < 225 and y > 200):
             return color(223, 30, 38)
         elif (y < 170 and x > 200):
             return color(148, 26, 28)
